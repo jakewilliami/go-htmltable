@@ -385,7 +385,11 @@ func (p *Page) innerText(n *html.Node, sb *strings.Builder) {
 		sb.WriteString(strings.TrimSpace(n.Data))
 		return
 	}
-	if n.FirstChild == nil {
+	if n.Type != html.ElementNode {
+		return
+	}
+	switch n.Data {
+	case "script", "style", "head":
 		return
 	}
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
