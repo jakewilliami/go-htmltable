@@ -20,6 +20,7 @@ type Page struct {
 	Tables []*Table
 
 	ctx      context.Context
+	opts     options
 	rowSpans []int
 	colSpans []int
 	row      []string
@@ -35,21 +36,21 @@ type Page struct {
 }
 
 // New returns an instance of the page with possibly more than one table
-func New(ctx context.Context, r io.Reader) (*Page, error) {
-	p := &Page{ctx: ctx}
+func New(ctx context.Context, r io.Reader, opts ...Option) (*Page, error) {
+	p := &Page{ctx: ctx, opts: applyOptions(opts)}
 	return p, p.init(r)
 }
 
 // NewFromString is same as New(ctx.Context, io.Reader), but from string
-func NewFromString(r string) (*Page, error) {
-	return New(context.Background(), strings.NewReader(r))
+func NewFromString(r string, opts ...Option) (*Page, error) {
+	return New(context.Background(), strings.NewReader(r), opts...)
 }
 
 // NewFromResponse is same as New(ctx.Context, io.Reader), but from http.Response.
 //
 // In case of failure, returns `ResponseError`, that could be further inspected.
-func NewFromResponse(resp *http.Response) (*Page, error) {
-	p, err := New(resp.Request.Context(), resp.Body)
+func NewFromResponse(resp *http.Response, opts ...Option) (*Page, error) {
+	p, err := New(resp.Request.Context(), resp.Body, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +60,7 @@ func NewFromResponse(resp *http.Response) (*Page, error) {
 // NewFromURL is same as New(ctx.Context, io.Reader), but from URL.
 //
 // In case of failure, returns `ResponseError`, that could be further inspected.
-func NewFromURL(url string) (*Page, error) {
+func NewFromURL(url string, opts ...Option) (*Page, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -67,7 +68,7 @@ func NewFromURL(url string) (*Page, error) {
 	if resp.Body != nil {
 		defer resp.Body.Close()
 	}
-	return NewFromResponse(resp)
+	return NewFromResponse(resp, opts...)
 }
 
 // Len returns number of tables found on the page
