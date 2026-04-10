@@ -40,7 +40,17 @@ func NewSliceFromResponse[T any](resp *http.Response, opts ...Option) ([]T, erro
 // NewSliceFromString is same as NewSlice(context.Context, io.Reader),
 // but takes just an URL.
 func NewSliceFromURL[T any](url string, opts ...Option) ([]T, error) {
-	resp, err := http.Get(url)
+	o := applyOptions(opts)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	ua := o.userAgent
+	if ua == "" {
+		ua = DefaultUserAgent
+	}
+	req.Header.Set("User-Agent", ua)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

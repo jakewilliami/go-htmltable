@@ -61,7 +61,17 @@ func NewFromResponse(resp *http.Response, opts ...Option) (*Page, error) {
 //
 // In case of failure, returns `ResponseError`, that could be further inspected.
 func NewFromURL(url string, opts ...Option) (*Page, error) {
-	resp, err := http.Get(url)
+	o := applyOptions(opts)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	ua := o.userAgent
+	if ua == "" {
+		ua = DefaultUserAgent
+	}
+	req.Header.Set("User-Agent", ua)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
