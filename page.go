@@ -214,8 +214,14 @@ func (p *Page) parse(n *html.Node) {
 		p.colSpan = append(p.colSpan, p.intAttrOr(n, "colspan", 1))
 		p.rowSpan = append(p.rowSpan, p.intAttrOr(n, "rowspan", 1))
 		var sb strings.Builder
-		p.innerText(n, &sb)
-		p.row = append(p.row, sb.String())
+		// Only retain inner HTML on td elements.  th elements need to be properly
+		// stripped for header struct reflection
+		if p.opts.innerHTML && n.Data == "td" {
+			p.innerHTML(n, &sb)
+		} else {
+			p.innerText(n, &sb)
+		}
+		p.row = append(p.row, strings.TrimSpace(sb.String()))
 		return
 	case "tr":
 		p.finishRow()
@@ -394,6 +400,12 @@ func (p *Page) innerText(n *html.Node, sb *strings.Builder) {
 	}
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		p.innerText(c, sb)
+	}
+}
+
+func (p *Page) innerHTML(n *html.Node, sb *strings.Builder) {
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		html.Render(sb, c)
 	}
 }
 

@@ -10,6 +10,7 @@ const (
 
 type options struct {
 	userAgent string
+	innerHTML bool
 }
 
 type Option func(*options)
@@ -18,6 +19,13 @@ type Option func(*options)
 func WithUserAgent(ua string) Option {
 	return func(o *options) {
 		o.userAgent = ua
+	}
+}
+
+// WithInnerHTML instructs the parser to keep the inner HTML of each cell
+func WithInnerHTML() Option {
+	return func(o *options) {
+		o.innerHTML = true
 	}
 }
 
